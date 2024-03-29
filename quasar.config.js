@@ -10,7 +10,7 @@
 
 const { configure } = require('quasar/wrappers');
 
-module.exports = configure(function (/* ctx */) {
+module.exports = configure(function (ctx) {
   return {
     eslint: {
       // fix: true,
@@ -63,7 +63,9 @@ module.exports = configure(function (/* ctx */) {
       // publicPath: '/',
       // analyze: true,
       env: {
-        API: 'https://demo.mercuryfire.com.tw:49110/',
+        API: ctx.dev
+          ? 'http://localhost:9000'
+          : 'https://demo.mercuryfire.com.tw:49110/',
       },
       // rawDefine: {}
       // ignorePublicFolder: true,
@@ -82,7 +84,7 @@ module.exports = configure(function (/* ctx */) {
     devServer: {
       open: true, // opens browser window automatically
       proxy: {
-        '/api': {
+        '/crudTest': {
           target: 'https://demo.mercuryfire.com.tw:49110',
           changeOrigin: true,
           secure: false,

@@ -1,19 +1,19 @@
-import axios from 'axios';
+import { api } from 'src/boot/axios';
 
 function getCrudTest() {
-  return axios.get('api/crudTest/a');
+  return api.get('crudTest/a');
 }
 
 function postCrudTest(data) {
-  return axios.post('api/crudTest', data);
+  return api.post('crudTest', data);
 }
 
 function patchCrudTest(data) {
-  return axios.patch('api/crudTest', data);
+  return api.patch('crudTest', data);
 }
 
 function deleteCrudTest(id) {
-  return axios.delete(`api/crudTest/${id}`);
+  return api.delete(`crudTest/${id}`);
 }
 
 export { getCrudTest, postCrudTest, patchCrudTest, deleteCrudTest };
