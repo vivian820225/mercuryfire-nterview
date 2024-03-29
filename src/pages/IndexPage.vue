@@ -115,7 +115,7 @@
                 editData({
                   id: tempEditData.id,
                   name: tempEditData.name,
-                  age: tempEditData.age,
+                  age: Number(tempEditData.age),
                 })
               "
             />
@@ -262,6 +262,7 @@ const editData = async (data) => {
       color: 'positive',
       message: '送出成功',
     });
+    await fetchData();
   } catch (error) {
     $q.notify({
       icon: 'error',
