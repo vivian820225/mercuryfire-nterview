@@ -1,13 +1,3 @@
 {
-  "routes": [{ "handle": "filesystem" }, { "src": "/.*", "dest": "/" }],
-  "rewrites": [
-    {
-      "source": "/crudTest/:path*",
-      "destination": "https://demo.mercuryfire.com.tw:49110/:path*"
-    },
-    {
-      "source": "/crudTest/:path*/",
-      "destination": "https://demo.mercuryfire.com.tw:49110/:path*/"
-    }
-  ]
+  "routes": [{ "handle": "filesystem" }, { "src": "/.*", "dest": "/" }]
 }
