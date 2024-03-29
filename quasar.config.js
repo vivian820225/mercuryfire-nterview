@@ -65,7 +65,7 @@ module.exports = configure(function (ctx) {
       env: {
         API: ctx.dev
           ? 'http://localhost:9000'
-          : 'https://mercuryfire-nterview.vercel.app',
+          : 'https://demo.mercuryfire.com.tw:49110/',
       },
       // rawDefine: {}
       // ignorePublicFolder: true,
