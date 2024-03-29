@@ -78,17 +78,18 @@ module.exports = configure(function (/* ctx */) {
       //   [ 'package-name', { ..options.. } ]
       // ]
     },
-
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
     devServer: {
       open: true, // opens browser window automatically
-    },
-    // port: 9001,
-    proxy: {
-      // 將所有以/api開頭的請求代理
-      '/crudTest': {
-        target: 'https://demo.mercuryfire.com.tw:49110/',
-        changeOrigin: true,
+      proxy: {
+        '/api': {
+          target: 'https://demo.mercuryfire.com.tw:49110',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => {
+            return path.replace(/^\/api/, '');
+          },
+        },
       },
     },
 
@@ -107,7 +108,7 @@ module.exports = configure(function (/* ctx */) {
       // directives: [],
 
       // Quasar plugins
-      plugins: [],
+      plugins: ['Notify', 'Dialog'],
     },
 
     // animations: 'all', // --- includes all animations
