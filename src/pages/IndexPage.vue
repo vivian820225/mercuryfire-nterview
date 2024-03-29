@@ -1,11 +1,30 @@
 <template>
   <q-page class="row q-pt-xl">
     <div class="full-width q-px-xl">
-      <div class="q-mb-xl">
-        <q-input v-model="tempData.name" label="姓名" />
-        <q-input v-model="tempData.age" label="年齡" />
-        <q-btn color="primary" class="q-mt-md">新增</q-btn>
-      </div>
+      <form ref="formRef" @submit.prevent="addData()" class="q-gutter-md">
+        <div class="q-mb-xl">
+          <q-input
+            ref="nameRef"
+            v-model="tempData.name"
+            :rules="[rules.notEmpty]"
+            label="姓名"
+          />
+          <q-input
+            ref="ageRef"
+            :rules="[rules.notEmpty, rules.isPositiveInteger]"
+            v-model="tempData.age"
+            label="年齡"
+          />
+          <q-btn
+            color="primary"
+            :loading="isLoading"
+            class="q-mt-md"
+            type="submit"
+          >
+            新增
+          </q-btn>
+        </div>
+      </form>
 
       <q-table
         flat
@@ -73,25 +92,56 @@
           </div>
         </template>
       </q-table>
+
+      <!-- Edit -->
+      <q-dialog v-model="isEdit" persistent>
+        <q-card style="min-width: 320px">
+          <q-card-section>
+            <div class="text-h6">編輯</div>
+          </q-card-section>
+
+          <q-card-section class="q-pt-none">
+            <q-input v-model="tempEditData.name" label="姓名" />
+            <q-input v-model="tempEditData.age" label="年齡" />
+          </q-card-section>
+
+          <q-card-actions align="right" class="text-primary">
+            <q-btn flat label="取消" @click="isEdit = false" />
+            <q-btn
+              flat
+              label="更新"
+              :loading="isLoading"
+              @click="
+                editData({
+                  id: tempEditData.id,
+                  name: tempEditData.name,
+                  age: tempEditData.age,
+                })
+              "
+            />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
     </div>
   </q-page>
 </template>
 
 <script setup lang="ts">
-import axios from 'axios';
-import { QTableProps } from 'quasar';
-import { ref } from 'vue';
+import { QTableProps, useQuasar } from 'quasar';
+import {
+  deleteCrudTest,
+  getCrudTest,
+  patchCrudTest,
+  postCrudTest,
+} from 'src/api';
+import { onMounted, ref } from 'vue';
+
 interface btnType {
   label: string;
   icon: string;
   status: string;
 }
-const blockData = ref([
-  {
-    name: 'test',
-    age: 25,
-  },
-]);
+const blockData = ref([]);
 const tableConfig = ref([
   {
     label: '姓名',
@@ -119,13 +169,141 @@ const tableButtons = ref([
   },
 ]);
 
+const $q = useQuasar();
+
+const nameRef = ref();
+const ageRef = ref();
+const isEdit = ref(false);
+const isLoading = ref(false);
+
 const tempData = ref({
   name: '',
   age: '',
 });
-function handleClickOption(btn, data) {
-  // ...
+
+const tempEditData = ref({
+  id: '',
+  name: '',
+  age: 0,
+});
+
+const rules = {
+  notEmpty: (val) => !!val || '欄位不得為空白',
+  isPositiveInteger: (val) => /^[0-9]+$/.test(val) || '欄位必須為正整數',
+};
+
+function handleClickOption(btn: btnType, data) {
+  switch (btn.status) {
+    case 'edit':
+      tempEditData.value.id = data.id;
+      tempEditData.value.name = data.name;
+      tempEditData.value.age = Number(data.age);
+      isEdit.value = true;
+      break;
+    case 'delete':
+      deleteData(data.id);
+      break;
+  }
 }
+
+const fetchData = async () => {
+  isLoading.value = true;
+  try {
+    const res = await getCrudTest();
+    blockData.value = res.data.result;
+  } catch (e) {
+    $q.notify({
+      icon: 'error',
+      color: 'danger',
+      message: '發生錯誤',
+    });
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const addData = async () => {
+  isLoading.value = true;
+  nameRef.value.validate();
+  ageRef.value.validate();
+
+  try {
+    const params = {
+      name: tempData.value.name,
+      age: Number(tempData.value.age),
+    };
+
+    const res = await postCrudTest(params);
+
+    $q.notify({
+      icon: 'done',
+      color: 'positive',
+      message: '送出成功',
+    });
+
+    await fetchData();
+  } catch (error) {
+    $q.notify({
+      icon: 'error',
+      color: 'danger',
+      message: '發生錯誤',
+    });
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const editData = async (data) => {
+  isLoading.value = true;
+  try {
+    const res = await patchCrudTest(data);
+    $q.notify({
+      icon: 'done',
+      color: 'positive',
+      message: '送出成功',
+    });
+  } catch (error) {
+    $q.notify({
+      icon: 'error',
+      color: 'danger',
+      message: '發生錯誤',
+    });
+  } finally {
+    isEdit.value = false;
+    isLoading.value = false;
+  }
+};
+
+const deleteData = async (id) => {
+  isLoading.value = true;
+  try {
+    $q.dialog({
+      title: '提示',
+      message: '是否確定刪除該筆資料？',
+      cancel: '取消',
+    }).onOk(async () => {
+      await deleteCrudTest(id);
+      await fetchData();
+      $q.notify({
+        icon: 'done',
+        color: 'positive',
+        message: '刪除成功',
+      });
+    });
+  } catch (error) {
+    $q.notify({
+      icon: 'error',
+      color: 'danger',
+      message: '發生錯誤',
+    });
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchData();
+});
 </script>
 
 <style lang="scss" scoped>
